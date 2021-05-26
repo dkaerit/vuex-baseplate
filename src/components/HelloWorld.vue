@@ -1,44 +1,83 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-pwa" target="_blank" rel="noopener">pwa</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router" target="_blank" rel="noopener">router</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-e2e-cypress" target="_blank" rel="noopener">e2e-cypress</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <h1>Home</h1>  
+    <h2>Status</h2>
+    <p v-if="token">Conectado: {{token}}</p>
+    <p v-else>Desconectado: {{token}}</p>  
+
+    <h2>Lista de usuarios</h2>
+    <p v-for="(usuario, idx) in usuarios" :key="idx">{{ usuario }}</p>
+    
+    <h2>Agregar usuario</h2>
+    <form @submit="addUser">
+      <label for="name">Nombre </label><input id="name" name="name" type="texto" v-model="user"/><br>
+      <label for="email">Email </label><input id="email" name="email" type="texto" v-model="email"/><br>
+      <label for="passwd">Contraseña </label><input id="passwd" name="passwd" type="texto" v-model="passwd"/><br>
+      <p><input type="submit" value="Enviar"></p>
+    </form>
+    usuario: {{ user }}<br/>
+    email: {{ email }}<br/>
+    passwd: {{ passwd }}<br/>
+
+    <h2>Conectarse</h2>
+    <form @submit="logIn">
+      <label for="logname">Usuario</label><input id="logname" name="logname" type="texto" v-model="logUser"/><br>
+      <label for="logpasswd">Contraseña </label><input id="logpasswd" name="logpasswd" type="texto" v-model="logPasswd"/><br>
+      <p>
+        <input type="submit" value="Login">
+        <input type="button" @click="logOut" value="Log Out">
+      </p>
+    </form>
+    usuario: {{ logUser }}<br/>
+    passwd: {{ logPasswd }}<br/>
+
+
   </div>
 </template>
 
 <script>
+import { mapState, mapMutations, mapActions } from 'vuex'
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
+  data() { // variables del componente
+    return {
+      user: null,
+      email: null,
+      passwd: null,
+
+      logUser: null,
+      logPasswd: null
+    }
+  },
+  mounted() { /*this.listUsers()*/ },
+  props: {}, // parametros del componente
+  methods: {
+    ...mapMutations('USUARIOS', ['addUser']), // mutations to methods
+    ...mapActions('USUARIOS', ['addUserAction', 'getUsersAction']),
+    ...mapActions(['autenticationAction', 'dismissAction']),
+    
+    addUser(e) { 
+      this.$store.dispatch('USUARIOS/addUserAction', {user: this.user, email: this.email, passwd: this.passwd}); 
+      this.listUsers();
+      e.preventDefault();
+    },
+
+    listUsers() { 
+      this.$store.dispatch('USUARIOS/getUsersAction') 
+    },
+
+    logIn(e) {
+      this.$store.dispatch('autenticationAction', {user: this.logUser, passwd: this.logPasswd}) 
+      e.preventDefault();
+    },
+
+    logOut() {
+      this.$store.dispatch('dismissAction') 
+    }
+  },
+  computed: {
+    ...mapState('USUARIOS',['usuarios']), 
+    ...mapState(['token']) 
   }
 }
 </script>
@@ -60,3 +99,4 @@ a {
   color: #42b983;
 }
 </style>
+
